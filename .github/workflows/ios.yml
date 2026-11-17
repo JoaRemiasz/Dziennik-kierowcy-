@@ -1,0 +1,39 @@
+
+name: Build Dziennik Kierowcy iOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: Pobierz projekt
+        uses: actions/checkout@v4
+
+      - name: Zainstaluj Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Pobierz zależności
+        run: flutter pub get
+
+      - name: Zbuduj aplikację iOS
+        run: flutter build ios --release --no-codesign
+
+      - name: Przygotuj IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -r Dziennik-Kierowcy.ipa Payload
+
+      - name: Udostępnij plik IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dziennik-Kierowcy-IPA
+          path: Dziennik-Kierowcy.ipa
